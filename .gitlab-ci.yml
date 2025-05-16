@@ -1,0 +1,28 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  FRONTEND_IMAGE: registry.gitlab.com/your-namespace/your-project/frontend
+  BACKEND_IMAGE: registry.gitlab.com/your-namespace/your-project/backend
+
+build_frontend:
+  stage: build
+  script:
+    - docker build -t $FRONTEND_IMAGE ./frontend
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin registry.gitlab.com
+    - docker push $FRONTEND_IMAGE
+
+build_backend:
+  stage: build
+  script:
+    - docker build -t $BACKEND_IMAGE ./backend
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin registry.gitlab.com
+    - docker push $BACKEND_IMAGE
+
+# Optional deploy stage (customize as needed)
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploy logic here using ssh, kubectl, or similar"
+  when: manual
