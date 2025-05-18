@@ -1,0 +1,6 @@
+Couldn't find '/root/.ollama/id_ed25519'. Generating new private key.
+Your new public key is: 
+
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILoGaq7jRJNkqTxcp4+FeA4SYrKt2/Mxychh8Uy8+v/7
+
+Error: listen tcp 127.0.0.1:11434: listen: address already in use
