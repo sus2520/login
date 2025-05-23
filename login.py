@@ -2,14 +2,16 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sqlite3
-import bcrypt
+import hashlib
+import os
+import secrets
 
 app = FastAPI()
 
-# CORS setup for Render.com
+# CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://lacd.onrender.com", "https://llama3.test-hr.com"],
+    allow_origins=["https://lacd.onrender.com", "https://llama3.test-hr.com", "http://localhost:3000", "<your-frontend-url>"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -38,12 +40,22 @@ def init_db():
 # Initialize the database
 init_db()
 
-# Helper functions for password hashing
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+# Helper functions for password hashing using hashlib
+def hash_password(password: str) -> tuple[str, str]:
+    # Generate a random salt
+    salt = secrets.token_hex(16)  # 16 bytes, hex-encoded
+    # Combine password and salt, then hash with SHA-256
+    salted_password = (password + salt).encode('utf-8')
+    hashed = hashlib.sha256(salted_password).hexdigest()
+    # Return the hash and salt (store both in the database)
+    return hashed, salt
 
-def verify_password(password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+def verify_password(password: str, stored_hash: str, salt: str) -> bool:
+    # Recompute the hash with the provided password and stored salt
+    salted_password = (password + salt).encode('utf-8')
+    computed_hash = hashlib.sha256(salted_password).hexdigest()
+    # Compare the computed hash with the stored hash
+    return computed_hash == stored_hash
 
 # Pydantic models for signup and login requests
 class SignupRequest(BaseModel):
@@ -83,10 +95,10 @@ async def signup(request: SignupRequest):
             conn.close()
             return {"status": "error", "error": "Email already exists"}
 
-        # Hash the password and store the user
-        hashed_password = hash_password(password)
-        cursor.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-                      (name, email, hashed_password))
+        # Hash the password and get the salt
+        hashed_password, salt = hash_password(password)
+        # Store the hashed password and salt (modify the table structure to store the salt)
+        cursor.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', (name, email, f"{hashed_password}:{salt}"))
         conn.commit()
         conn.close()
 
@@ -120,8 +132,15 @@ async def login(request: LoginRequest):
         if not user:
             return {"status": "error", "error": "Invalid credentials"}
 
+        # Extract the stored hash and salt (stored as "hash:salt")
+        stored_password = user[3]  # user[3] is the password field
+        try:
+            stored_hash, salt = stored_password.split(":")
+        except ValueError:
+            return {"status": "error", "error": "Invalid stored password format"}
+
         # Verify password
-        if not verify_password(password, user[3]):  # user[3] is the hashed password
+        if not verify_password(password, stored_hash, salt):
             return {"status": "error", "error": "Invalid credentials"}
 
         return {
@@ -131,6 +150,11 @@ async def login(request: LoginRequest):
 
     except Exception as e:
         return {"status": "error", "error": str(e)}
+
+# Add health check endpoint for Render
+@app.get("/healthz")
+async def health_check():
+    return {"status": "healthy"}
 
 if __name__ == "__main__":
     import uvicorn
