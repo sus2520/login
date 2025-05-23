@@ -1,0 +1,9 @@
+langchain-community
+langchain
+uvicorn
+fastapi
+
+uvicorn==0.30.6
+pydantic==2.9.2
+sqlite3
+bcrypt==4.2.0
