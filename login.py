@@ -110,7 +110,7 @@ async def signup(request: SignupRequest):
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
-# Login endpoint
+
 @app.post("/login")
 async def login(request: LoginRequest):
     email = request.email
