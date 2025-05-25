@@ -90,32 +90,78 @@ async def favicon():
     """Return a 204 No Content response for favicon requests."""
     return Response(status_code=204)
 
-# Signup endpoint (restricted to allowed users, accepts profile picture)
+from fastapi import FastAPI, Form, UploadFile, File, HTTPException, status
+from pydantic import EmailStr
+import base64
+import sqlite3
+from argon2 import PasswordHasher
+from typing import Optional
+
+# Assuming these are defined elsewhere in your code
+app = FastAPI()
+ph = PasswordHasher()
+DATABASE = "users.db"
+ALLOWED_USERS = {"roberto", "pablo", "shafeena"}
+
 @app.post("/signup")
-async def signup(name: str = Form(...), email: str = Form(...), password: str = Form(...), profile_pic: UploadFile = File(None)):
+async def signup(
+    name: str = Form(...),
+    email: EmailStr = Form(...),
+    password: str = Form(...),
+    profile_pic: UploadFile = File(None)
+):
     """Handle user signup with validation, password hashing, and profile picture upload."""
+    # Normalize and validate the name
+    name = name.strip()
+    if not name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Name cannot be empty"
+        )
+    
     # Check if the name is in the allowed users list (case-insensitive)
     if name.lower() not in ALLOWED_USERS:
-        return {"status": "error", "error": f"User '{name}' is not allowed to sign up."}
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"User '{name}' is not allowed to sign up"
+        )
 
-    # Validate input
-    if not name or not email or not password:
-        return {"status": "error", "error": "Missing required fields"}
-
+    # Validate password complexity
     if len(password) < 8:
-        return {"status": "error", "error": "Password must be at least 8 characters long"}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long"
+        )
+    if not any(c.isupper() for c in password) or not any(c.isdigit() for c in password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one uppercase letter and one digit"
+        )
 
     # Handle profile picture
-    profile_pic_base64 = None
+    profile_pic_base64: Optional[str] = None
     if profile_pic:
         try:
+            # Validate file type
+            if not profile_pic.content_type.startswith("image/"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Profile picture must be an image file"
+                )
+            
             # Read the file and convert to base64
             contents = await profile_pic.read()
             if len(contents) > 2 * 1024 * 1024:  # Limit to 2MB
-                return {"status": "error", "error": "Profile picture size must be less than 2MB"}
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Profile picture size must be less than 2MB"
+                )
             profile_pic_base64 = base64.b64encode(contents).decode('utf-8')
         except Exception as e:
-            return {"status": "error", "error": f"Failed to process profile picture: {str(e)}"}
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to process profile picture: {str(e)}"
+            )
 
     try:
         conn = sqlite3.connect(DATABASE)
@@ -125,23 +171,36 @@ async def signup(name: str = Form(...), email: str = Form(...), password: str = 
         cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
         if cursor.fetchone():
             conn.close()
-            return {"status": "error", "error": "Email already exists"}
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already exists"
+            )
 
         # Hash the password using Argon2
-        hashed_password = hash_password(password)
+        hashed_password = ph.hash(password)
+
         # Store the user data including the profile picture
-        cursor.execute('INSERT INTO users (name, email, password, profile_pic) VALUES (?, ?, ?, ?)', 
-                       (name, email, hashed_password, profile_pic_base64))
+        cursor.execute(
+            'INSERT INTO users (name, email, password, profile_pic) VALUES (?, ?, ?, ?)',
+            (name, email, hashed_password, profile_pic_base64)
+        )
         conn.commit()
         conn.close()
 
         return {
             "status": "success",
-            "user": {"name": name, "email": email, "profilePic": profile_pic_base64}
+            "user": {
+                "name": name,
+                "email": email,
+                "profilePic": profile_pic_base64
+            }
         }
 
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+    except sqlite3.Error as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
 
 # Login endpoint
 @app.post("/login")
