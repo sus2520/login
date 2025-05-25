@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Response, Form, UploadFile, File, HTTPExce
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, EmailStr
 import sqlite3
 from argon2 import PasswordHasher
@@ -13,7 +14,7 @@ import os
 from dotenv import load_dotenv
 import re
 
-# Load .env variables
+# Load environment variables
 load_dotenv()
 
 # Configure logging
@@ -22,45 +23,47 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# CORS
+# CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://lacd.onrender.com",
-        "https://llama3.test-hr.com",
-        "http://localhost:3000",
-        "https://login-1-8dx3.onrender.com"
-    ],
+    allow_origins=["https://lacd.onrender.com", "https://llama3.test-hr.com", "http://localhost:3000", "https://login-1-8dx3.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Exception handler for validation
+# Custom RequestValidationError handler to handle binary data safely
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logger.error(f"Validation error: {exc.errors()}")
+
+    def safe_encoder(obj):
+        if isinstance(obj, UploadFile):
+            return {"filename": obj.filename, "content_type": obj.content_type}
+        elif isinstance(obj, bytes):
+            return f"<{len(obj)} bytes>"
+        return str(obj)
+
+    safe_detail = jsonable_encoder(exc.errors(), custom_encoder={UploadFile: safe_encoder, bytes: safe_encoder})
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": exc.errors()},
+        content={"detail": safe_detail},
     )
 
+# Database setup
 DATABASE = "users.db"
 
-# Allowed usernames
+# Load allowed users from environment variable
 ALLOWED_USERS = set(os.getenv("ALLOWED_USERS", "roberto,pablo,shafeena").lower().split(","))
 if not ALLOWED_USERS:
-    logger.error("ALLOWED_USERS must be set")
-    raise ValueError("Set ALLOWED_USERS env variable")
+    logger.error("ALLOWED_USERS environment variable is not set or empty")
+    raise ValueError("ALLOWED_USERS environment variable must be set with a comma-separated list of usernames")
 
-# Argon2 password hasher
+# Initialize Argon2 password hasher
 ph = PasswordHasher()
 
-# Email regex
-EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
-
-# Initialize DB
 def init_db():
+    """Initialize the SQLite database and create the users table if it doesn't exist."""
     try:
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
@@ -74,18 +77,21 @@ def init_db():
                 )
             ''')
             conn.commit()
-            logger.info("Database initialized")
+            logger.info("Database initialized successfully")
     except sqlite3.Error as e:
-        logger.error(f"DB init failed: {str(e)}")
+        logger.error(f"Failed to initialize database: {str(e)}")
         raise
 
-# Password helpers
+# Helper functions for password hashing
 def hash_password(password: str) -> str:
+    """Hash a password using Argon2."""
     return ph.hash(password)
 
-def verify_password(password: str, hashed: str) -> bool:
+def verify_password(password: str, hashed_password: str) -> bool:
+    """Verify a password against its Argon2 hash."""
     try:
-        return ph.verify(hashed, password)
+        ph.verify(hashed_password, password)
+        return True
     except VerifyMismatchError:
         return False
 
@@ -98,12 +104,18 @@ class ForgotPasswordRequest(BaseModel):
     email: EmailStr
     new_password: str
 
+# Email regex
+EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+# Endpoints
 @app.get("/")
 async def root():
+    """Return a welcome message for the root path."""
     return {"message": "Welcome to the Login API. Available endpoints: /signup, /login, /forgot-password, /healthz"}
 
 @app.get("/favicon.ico")
 async def favicon():
+    """Return a 204 No Content response for favicon requests."""
     return Response(status_code=204)
 
 @app.post("/signup")
@@ -111,100 +123,142 @@ async def signup(
     name: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
-    profile_pic: UploadFile = File(None)
+    profile_pic: Optional[UploadFile] = File(None)
 ):
-    logger.info(f"Signup request for: {email}")
+    """Handle user signup with validation, password hashing, and profile picture upload."""
+    logger.info(f"Received signup request for email: {email}")
 
+    # Normalize and validate name
     name = name.strip()
     if not name:
+        logger.warning("Signup failed: Name cannot be empty")
         raise HTTPException(status_code=400, detail="Name cannot be empty")
-    if name.lower() not in ALLOWED_USERS:
-        raise HTTPException(status_code=403, detail=f"User '{name}' is not allowed to sign up")
-    if not EMAIL_REGEX.match(email):
-        raise HTTPException(status_code=400, detail="Invalid email format")
-    if len(password) < 8 or not any(c.isupper() for c in password) or not any(c.isdigit() for c in password):
-        raise HTTPException(status_code=400, detail="Password must be at least 8 characters, include an uppercase letter and a digit")
 
+    # Check if name is allowed
+    if name.lower() not in ALLOWED_USERS:
+        logger.warning(f"Signup failed: User '{name}' is not allowed to sign up")
+        raise HTTPException(status_code=403, detail=f"User '{name}' is not allowed to sign up")
+
+    # Validate email format
+    if not EMAIL_REGEX.match(email):
+        logger.warning(f"Signup failed: Invalid email format for email: {email}")
+        raise HTTPException(status_code=400, detail="Invalid email format")
+
+    # Validate password complexity
+    if len(password) < 8:
+        logger.warning(f"Signup failed: Password too short for email: {email}")
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+    if not any(c.isupper() for c in password) or not any(c.isdigit() for c in password):
+        logger.warning(f"Signup failed: Password complexity not met for email: {email}")
+        raise HTTPException(status_code=400, detail="Password must contain at least one uppercase letter and one digit")
+
+    # Handle profile picture
     profile_pic_base64: Optional[str] = None
     if profile_pic:
+        if not profile_pic.content_type.startswith("image/"):
+            logger.warning(f"Signup failed: Invalid profile picture type for email: {email}")
+            raise HTTPException(status_code=400, detail="Profile picture must be an image file")
         try:
-            if not profile_pic.content_type.startswith("image/"):
-                raise HTTPException(status_code=400, detail="Profile picture must be an image")
             contents = await profile_pic.read()
-            if len(contents) > 2 * 1024 * 1024:
-                raise HTTPException(status_code=400, detail="Profile picture size must be <2MB")
-            profile_pic_base64 = base64.b64encode(contents).decode("utf-8")
+            if len(contents) > 2 * 1024 * 1024:  # 2MB limit
+                logger.warning(f"Signup failed: Profile picture too large for email: {email}")
+                raise HTTPException(status_code=400, detail="Profile picture size must be less than 2MB")
+            profile_pic_base64 = base64.b64encode(contents).decode('utf-8')
         except Exception as e:
-            logger.error(f"Profile pic processing failed for {email}: {e}")
-            raise HTTPException(status_code=500, detail=f"Profile picture error: {e}")
+            logger.error(f"Failed to process profile picture for email {email}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to process profile picture: {str(e)}")
 
     try:
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+            cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
             if cursor.fetchone():
+                logger.warning(f"Signup failed: Email already exists: {email}")
                 raise HTTPException(status_code=409, detail="Email already exists")
-            hashed_pw = hash_password(password)
+
+            hashed_password = hash_password(password)
             cursor.execute(
-                "INSERT INTO users (name, email, password, profile_pic) VALUES (?, ?, ?, ?)",
-                (name, email, hashed_pw, profile_pic_base64)
+                'INSERT INTO users (name, email, password, profile_pic) VALUES (?, ?, ?, ?)',
+                (name, email, hashed_password, profile_pic_base64)
             )
             conn.commit()
+            logger.info(f"User {email} signed up successfully")
+
         return {
             "status": "success",
-            "user": {
-                "name": name,
-                "email": email,
-                "profilePic": profile_pic_base64
-            }
+            "user": {"name": name, "email": email, "profilePic": profile_pic_base64}
         }
+
     except sqlite3.Error as e:
-        logger.error(f"DB error during signup for {email}: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+        logger.error(f"Database error during signup for email {email}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/login")
 async def login(request: LoginRequest):
-    logger.info(f"Login request for {request.email}")
+    """Handle user login with password verification."""
+    logger.info(f"Received login request for email: {request.email}")
     try:
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users WHERE email = ?", (request.email,))
+            cursor.execute('SELECT * FROM users WHERE email = ?', (request.email,))
             user = cursor.fetchone()
-            if not user or not verify_password(request.password, user[3]):
+
+            if not user:
+                logger.warning(f"Login failed: Invalid credentials for email {request.email}")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
+
+            stored_password = user[3]
+            if not verify_password(request.password, stored_password):
+                logger.warning(f"Login failed: Invalid password for email {request.email}")
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+
+            logger.info(f"User {request.email} logged in successfully")
             return {
                 "status": "success",
                 "user": {"name": user[1], "email": user[2], "profilePic": user[4]}
             }
+
     except sqlite3.Error as e:
-        logger.error(f"DB error during login for {request.email}: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+        logger.error(f"Database error during login for email {request.email}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
-    logger.info(f"Password reset request for {request.email}")
-    if len(request.new_password) < 8 or not any(c.isupper() for c in request.new_password) or not any(c.isdigit() for c in request.new_password):
-        raise HTTPException(status_code=400, detail="Password must be at least 8 characters, include an uppercase letter and a digit")
+    """Handle password reset by updating the user's password in the database."""
+    logger.info(f"Received forgot-password request for email: {request.email}")
+    if len(request.new_password) < 8:
+        logger.warning(f"Forgot-password failed: Password too short for email: {request.email}")
+        raise HTTPException(status_code=400, detail="New password must be at least 8 characters long")
+    if not any(c.isupper() for c in request.new_password) or not any(c.isdigit() for c in request.new_password):
+        logger.warning(f"Forgot-password failed: Password complexity not met for email: {request.email}")
+        raise HTTPException(status_code=400, detail="New password must contain at least one uppercase letter and one digit")
+
     try:
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users WHERE email = ?", (request.email,))
+            cursor.execute('SELECT * FROM users WHERE email = ?', (request.email,))
             user = cursor.fetchone()
             if not user:
-                raise HTTPException(status_code=404, detail="User not found")
-            new_hashed = hash_password(request.new_password)
-            cursor.execute("UPDATE users SET password = ? WHERE email = ?", (new_hashed, request.email))
+                logger.warning(f"Forgot password failed: User with email {request.email} does not exist")
+                raise HTTPException(status_code=404, detail="User with this email does not exist")
+
+            hashed_new_password = hash_password(request.new_password)
+            cursor.execute('UPDATE users SET password = ? WHERE email = ?', (hashed_new_password, request.email))
             conn.commit()
-            return {"status": "success", "message": "Password updated successfully"}
+            logger.info(f"Password reset successfully for user {request.email}")
+
+        return {"status": "success", "message": "Password updated successfully"}
+
     except sqlite3.Error as e:
-        logger.error(f"DB error during password reset for {request.email}: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+        logger.error(f"Database error during forgot-password for email {request.email}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/healthz")
 async def health_check():
+    """Return a health check status for Render."""
     return {"status": "healthy"}
 
-# DB init on startup
+# Initialize the database on startup
 init_db()
 
 if __name__ == "__main__":
