@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sqlite3
 import hashlib
-import os
 import secrets
 
 app = FastAPI()
