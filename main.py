@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sqlite3
-import hashlib
-import secrets
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 
 app = FastAPI()
 
@@ -22,7 +22,11 @@ DATABASE = "users.db"
 # List of allowed usernames (case-insensitive comparison)
 ALLOWED_USERS = {"roberto", "pablo", "shafeena"}
 
+# Initialize Argon2 password hasher
+ph = PasswordHasher()
+
 def init_db():
+    """Initialize the SQLite database and create the users table if it doesn't exist."""
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.execute('''
@@ -33,28 +37,34 @@ def init_db():
             password TEXT NOT NULL
         )
     ''')
+
+    # Pre-populate the database with allowed users if they don't exist
+    allowed_users_data = [
+        ("roberto", "roberto@example.com", hash_password("defaultpassword123")),
+        ("pablo", "pablo@example.com", hash_password("defaultpassword123")),
+        ("shafeena", "shafeena@example.com", hash_password("defaultpassword123")),
+    ]
+
+    for name, email, hashed_password in allowed_users_data:
+        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+        if not cursor.fetchone():
+            cursor.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', (name, email, hashed_password))
+
     conn.commit()
     conn.close()
 
-# Initialize the database
-init_db()
+# Helper functions for password hashing using argon2
+def hash_password(password: str) -> str:
+    """Hash a password using Argon2."""
+    return ph.hash(password)
 
-# Helper functions for password hashing using hashlib
-def hash_password(password: str) -> tuple[str, str]:
-    # Generate a random salt
-    salt = secrets.token_hex(16)  # 16 bytes, hex-encoded
-    # Combine password and salt, then hash with SHA-256
-    salted_password = (password + salt).encode('utf-8')
-    hashed = hashlib.sha256(salted_password).hexdigest()
-    # Return the hash and salt (store both in the database)
-    return hashed, salt
-
-def verify_password(password: str, stored_hash: str, salt: str) -> bool:
-    # Recompute the hash with the provided password and stored salt
-    salted_password = (password + salt).encode('utf-8')
-    computed_hash = hashlib.sha256(salted_password).hexdigest()
-    # Compare the computed hash with the stored hash
-    return computed_hash == stored_hash
+def verify_password(password: str, hashed_password: str) -> bool:
+    """Verify a password against its Argon2 hash."""
+    try:
+        ph.verify(hashed_password, password)
+        return True
+    except VerifyMismatchError:
+        return False
 
 # Pydantic models for signup and login requests
 class SignupRequest(BaseModel):
@@ -66,9 +76,22 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+# Root endpoint to handle GET / requests
+@app.get("/")
+async def root():
+    """Return a welcome message for the root path."""
+    return {"message": "Welcome to the Login API. Available endpoints: /signup, /login, /healthz"}
+
+# Favicon endpoint to avoid 404 errors
+@app.get("/favicon.ico")
+async def favicon():
+    """Return a 204 No Content response for favicon requests."""
+    return Response(status_code=204)
+
 # Signup endpoint (restricted to allowed users)
 @app.post("/signup")
 async def signup(request: SignupRequest):
+    """Handle user signup with validation and password hashing."""
     name = request.name
     email = request.email
     password = request.password
@@ -94,10 +117,10 @@ async def signup(request: SignupRequest):
             conn.close()
             return {"status": "error", "error": "Email already exists"}
 
-        # Hash the password and get the salt
-        hashed_password, salt = hash_password(password)
-        # Store the hashed password and salt (modify the table structure to store the salt)
-        cursor.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', (name, email, f"{hashed_password}:{salt}"))
+        # Hash the password using Argon2
+        hashed_password = hash_password(password)
+        # Store the hashed password (Argon2 hash includes the salt)
+        cursor.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', (name, email, hashed_password))
         conn.commit()
         conn.close()
 
@@ -112,6 +135,7 @@ async def signup(request: SignupRequest):
 # Login endpoint
 @app.post("/login")
 async def login(request: LoginRequest):
+    """Handle user login with password verification."""
     email = request.email
     password = request.password
 
@@ -131,15 +155,9 @@ async def login(request: LoginRequest):
         if not user:
             return {"status": "error", "error": "Invalid credentials"}
 
-        # Extract the stored hash and salt (stored as "hash:salt")
-        stored_password = user[3]  # user[3] is the password field
-        try:
-            stored_hash, salt = stored_password.split(":")
-        except ValueError:
-            return {"status": "error", "error": "Invalid stored password format"}
-
         # Verify password
-        if not verify_password(password, stored_hash, salt):
+        stored_password = user[3]  # user[3] is the password field
+        if not verify_password(password, stored_password):
             return {"status": "error", "error": "Invalid credentials"}
 
         return {
@@ -150,10 +168,14 @@ async def login(request: LoginRequest):
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
-# Add health check endpoint for Render
+# Health check endpoint for Render
 @app.get("/healthz")
 async def health_check():
+    """Return a health check status for Render."""
     return {"status": "healthy"}
+
+# Initialize the database on startup
+init_db()
 
 if __name__ == "__main__":
     import uvicorn
