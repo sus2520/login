@@ -11,6 +11,7 @@ from typing import Optional
 import logging
 import os
 from dotenv import load_dotenv
+import re  # For regex-based email validation
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -93,6 +94,9 @@ class ForgotPasswordRequest(BaseModel):
     email: EmailStr
     new_password: str
 
+# Simple regex for email validation
+EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
 # Root endpoint to handle GET / requests
 @app.get("/")
 async def root():
@@ -133,11 +137,8 @@ async def signup(
             detail=f"User '{name}' is not allowed to sign up"
         )
 
-    # Manually validate email format
-    email_validator = EmailStr()
-    try:
-        email = email_validator.validate(email)
-    except ValueError:
+    # Validate email format using regex
+    if not EMAIL_REGEX.match(email):
         logger.warning(f"Signup failed: Invalid email format for email: {email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
