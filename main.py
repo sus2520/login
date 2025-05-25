@@ -9,6 +9,11 @@ from argon2.exceptions import VerifyMismatchError
 import base64
 from typing import Optional
 import logging
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from a .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -25,29 +30,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Custom RequestValidationError handler to avoid decoding binary data
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.error(f"Validation error: {exc.errors()}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors()},
+    )
+
 # Database setup
 DATABASE = "users.db"
 
-# List of allowed usernames (case-insensitive comparison)
-ALLOWED_USERS = {"roberto", "pablo", "shafeena"}
+# Load allowed users from environment variable (comma-separated list)
+ALLOWED_USERS = set(os.getenv("ALLOWED_USERS", "roberto,pablo,shafeena").lower().split(","))
+if not ALLOWED_USERS:
+    logger.error("ALLOWED_USERS environment variable is not set or empty")
+    raise ValueError("ALLOWED_USERS environment variable must be set with a comma-separated list of usernames")
 
 # Initialize Argon2 password hasher
 ph = PasswordHasher()
-
-# Custom RequestValidationError handler to avoid decoding binary data
-@app.exception_handler(RequestValidationError)
-async def custom_validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Custom handler to avoid decoding binary data in validation errors."""
-    errors = []
-    for error in exc.errors():
-        # If the error involves binary data (e.g., profile_pic), represent it as a string
-        if 'input' in error and isinstance(error['input'], bytes):
-            error['input'] = "Binary data (e.g., file upload)"  # Avoid including raw bytes
-        errors.append(error)
-    return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": errors},
-    )
 
 def init_db():
     """Initialize the SQLite database and create the users table if it doesn't exist."""
@@ -63,19 +65,6 @@ def init_db():
                     profile_pic TEXT  -- Store profile picture as base64 string
                 )
             ''')
-
-            # Pre-populate the database with allowed users if they don't exist
-            allowed_users_data = [
-                ("roberto", "roberto@example.com", hash_password("defaultpassword123"), None),
-                ("pablo", "pablo@example.com", hash_password("defaultpassword123"), None),
-                ("shafeena", "shafeena@example.com", hash_password("defaultpassword123"), None),
-            ]
-
-            for name, email, hashed_password, profile_pic in allowed_users_data:
-                cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
-                if not cursor.fetchone():
-                    cursor.execute('INSERT INTO users (name, email, password, profile_pic) VALUES (?, ?, ?, ?)',
-                                   (name, email, hashed_password, profile_pic))
             conn.commit()
             logger.info("Database initialized successfully")
     except sqlite3.Error as e:
@@ -120,14 +109,17 @@ async def favicon():
 @app.post("/signup")
 async def signup(
     name: str = Form(...),
-    email: EmailStr = Form(...),
+    email: str = Form(...),
     password: str = Form(...),
     profile_pic: UploadFile = File(None)
 ):
     """Handle user signup with validation, password hashing, and profile picture upload."""
+    logger.info(f"Received signup request for email: {email}")
+    
     # Normalize and validate the name
     name = name.strip()
     if not name:
+        logger.warning("Signup failed: Name cannot be empty")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Name cannot be empty"
@@ -135,45 +127,60 @@ async def signup(
     
     # Check if the name is in the allowed users list (case-insensitive)
     if name.lower() not in ALLOWED_USERS:
+        logger.warning(f"Signup failed: User '{name}' is not allowed to sign up")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"User '{name}' is not allowed to sign up"
         )
 
+    # Manually validate email format
+    email_validator = EmailStr()
+    try:
+        email = email_validator.validate(email)
+    except ValueError:
+        logger.warning(f"Signup failed: Invalid email format for email: {email}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid email format"
+        )
+
     # Validate password complexity
     if len(password) < 8:
+        logger.warning(f"Signup failed: Password too short for email: {email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Password must be at least 8 characters long"
         )
     if not any(c.isupper() for c in password) or not any(c.isdigit() for c in password):
+        logger.warning(f"Signup failed: Password complexity not met for email: {email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Password must contain at least one uppercase letter and one digit"
         )
 
-    # Handle profile picture (validate before reading to avoid issues with error messages)
+    # Handle profile picture
     profile_pic_base64: Optional[str] = None
     if profile_pic:
-        # Validate file type before reading
-        if not profile_pic.content_type.startswith("image/"):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Profile picture must be an image file"
-            )
-        
-        # Validate file size without reading the entire file (if possible)
-        # Note: FastAPI requires reading to get the size, so we read and validate together
         try:
+            # Validate file type
+            if not profile_pic.content_type.startswith("image/"):
+                logger.warning(f"Signup failed: Invalid profile picture type for email: {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Profile picture must be an image file"
+                )
+            
+            # Read the file and convert to base64
             contents = await profile_pic.read()
             if len(contents) > 2 * 1024 * 1024:  # Limit to 2MB
+                logger.warning(f"Signup failed: Profile picture too large for email: {email}")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Profile picture size must be less than 2MB"
                 )
             profile_pic_base64 = base64.b64encode(contents).decode('utf-8')
         except Exception as e:
-            logger.error(f"Failed to process profile picture: {str(e)}")
+            logger.error(f"Failed to process profile picture for email {email}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to process profile picture: {str(e)}"
@@ -186,6 +193,7 @@ async def signup(
             # Check if email already exists
             cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
             if cursor.fetchone():
+                logger.warning(f"Signup failed: Email already exists: {email}")
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="Email already exists"
@@ -212,7 +220,7 @@ async def signup(
         }
 
     except sqlite3.Error as e:
-        logger.error(f"Database error during signup: {str(e)}")
+        logger.error(f"Database error during signup for email {email}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database error: {str(e)}"
@@ -222,6 +230,7 @@ async def signup(
 @app.post("/login")
 async def login(request: LoginRequest):
     """Handle user login with password verification."""
+    logger.info(f"Received login request for email: {request.email}")
     try:
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
@@ -253,7 +262,7 @@ async def login(request: LoginRequest):
             }
 
     except sqlite3.Error as e:
-        logger.error(f"Database error during login: {str(e)}")
+        logger.error(f"Database error during login for email {request.email}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database error: {str(e)}"
@@ -263,13 +272,16 @@ async def login(request: LoginRequest):
 @app.post("/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
     """Handle password reset by updating the user's password in the database."""
+    logger.info(f"Received forgot-password request for email: {request.email}")
     if len(request.new_password) < 8:
+        logger.warning(f"Forgot-password failed: Password too short for email: {request.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="New password must be at least 8 characters long"
         )
 
     if not any(c.isupper() for c in request.new_password) or not any(c.isdigit() for c in request.new_password):
+        logger.warning(f"Forgot-password failed: Password complexity not met for email: {request.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="New password must contain at least one uppercase letter and one digit"
@@ -299,7 +311,7 @@ async def forgot_password(request: ForgotPasswordRequest):
         return {"status": "success", "message": "Password updated successfully"}
 
     except sqlite3.Error as e:
-        logger.error(f"Database error during forgot-password: {str(e)}")
+        logger.error(f"Database error during forgot-password for email {request.email}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database error: {str(e)}"
@@ -316,4 +328,4 @@ init_db()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=10000)
+    uvicorn.run(app, host="0.0.0.0", port=10000)  # Match Render port
