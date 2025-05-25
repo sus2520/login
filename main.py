@@ -1,10 +1,16 @@
-from fastapi import FastAPI, Request, Response, Form, UploadFile, File
+from fastapi import FastAPI, Request, Response, Form, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 import sqlite3
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import base64
+from typing import Optional
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -28,35 +34,38 @@ ph = PasswordHasher()
 
 def init_db():
     """Initialize the SQLite database and create the users table if it doesn't exist."""
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            profile_pic TEXT  -- Store profile picture as base64 string
-        )
-    ''')
+    try:
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    email TEXT NOT NULL UNIQUE,
+                    password TEXT NOT NULL,
+                    profile_pic TEXT  -- Store profile picture as base64 string
+                )
+            ''')
 
-    # Pre-populate the database with allowed users if they don't exist
-    allowed_users_data = [
-        ("roberto", "roberto@example.com", hash_password("defaultpassword123"), None),
-        ("pablo", "pablo@example.com", hash_password("defaultpassword123"), None),
-        ("shafeena", "shafeena@example.com", hash_password("defaultpassword123"), None),
-    ]
+            # Pre-populate the database with allowed users if they don't exist
+            allowed_users_data = [
+                ("roberto", "roberto@example.com", hash_password("defaultpassword123"), None),
+                ("pablo", "pablo@example.com", hash_password("defaultpassword123"), None),
+                ("shafeena", "shafeena@example.com", hash_password("defaultpassword123"), None),
+            ]
 
-    for name, email, hashed_password, profile_pic in allowed_users_data:
-        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
-        if not cursor.fetchone():
-            cursor.execute('INSERT INTO users (name, email, password, profile_pic) VALUES (?, ?, ?, ?)', 
-                           (name, email, hashed_password, profile_pic))
+            for name, email, hashed_password, profile_pic in allowed_users_data:
+                cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+                if not cursor.fetchone():
+                    cursor.execute('INSERT INTO users (name, email, password, profile_pic) VALUES (?, ?, ?, ?)',
+                                   (name, email, hashed_password, profile_pic))
+            conn.commit()
+            logger.info("Database initialized successfully")
+    except sqlite3.Error as e:
+        logger.error(f"Failed to initialize database: {str(e)}")
+        raise
 
-    conn.commit()
-    conn.close()
-
-# Helper functions for password hashing using argon2
+# Helper functions for password hashing using Argon2
 def hash_password(password: str) -> str:
     """Hash a password using Argon2."""
     return ph.hash(password)
@@ -71,11 +80,11 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 # Pydantic models for login and forgot password requests
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr
     new_password: str
 
 # Root endpoint to handle GET / requests
@@ -90,19 +99,7 @@ async def favicon():
     """Return a 204 No Content response for favicon requests."""
     return Response(status_code=204)
 
-from fastapi import FastAPI, Form, UploadFile, File, HTTPException, status
-from pydantic import EmailStr
-import base64
-import sqlite3
-from argon2 import PasswordHasher
-from typing import Optional
-
-# Assuming these are defined elsewhere in your code
-app = FastAPI()
-ph = PasswordHasher()
-DATABASE = "users.db"
-ALLOWED_USERS = {"roberto", "pablo", "shafeena"}
-
+# Signup endpoint
 @app.post("/signup")
 async def signup(
     name: str = Form(...),
@@ -158,34 +155,34 @@ async def signup(
                 )
             profile_pic_base64 = base64.b64encode(contents).decode('utf-8')
         except Exception as e:
+            logger.error(f"Failed to process profile picture: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to process profile picture: {str(e)}"
             )
 
     try:
-        conn = sqlite3.connect(DATABASE)
-        cursor = conn.cursor()
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
 
-        # Check if email already exists
-        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
-        if cursor.fetchone():
-            conn.close()
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Email already exists"
+            # Check if email already exists
+            cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+            if cursor.fetchone():
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Email already exists"
+                )
+
+            # Hash the password using Argon2
+            hashed_password = hash_password(password)
+
+            # Store the user data including the profile picture
+            cursor.execute(
+                'INSERT INTO users (name, email, password, profile_pic) VALUES (?, ?, ?, ?)',
+                (name, email, hashed_password, profile_pic_base64)
             )
-
-        # Hash the password using Argon2
-        hashed_password = ph.hash(password)
-
-        # Store the user data including the profile picture
-        cursor.execute(
-            'INSERT INTO users (name, email, password, profile_pic) VALUES (?, ?, ?, ?)',
-            (name, email, hashed_password, profile_pic_base64)
-        )
-        conn.commit()
-        conn.close()
+            conn.commit()
+            logger.info(f"User {email} signed up successfully")
 
         return {
             "status": "success",
@@ -197,6 +194,7 @@ async def signup(
         }
 
     except sqlite3.Error as e:
+        logger.error(f"Database error during signup: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database error: {str(e)}"
@@ -206,74 +204,88 @@ async def signup(
 @app.post("/login")
 async def login(request: LoginRequest):
     """Handle user login with password verification."""
-    email = request.email
-    password = request.password
-
-    # Validate input
-    if not email or not password:
-        return {"status": "error", "error": "Missing email or password"}
-
     try:
-        conn = sqlite3.connect(DATABASE)
-        cursor = conn.cursor()
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
 
-        # Check if user exists
-        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
-        user = cursor.fetchone()
-        conn.close()
+            # Check if user exists
+            cursor.execute('SELECT * FROM users WHERE email = ?', (request.email,))
+            user = cursor.fetchone()
 
-        if not user:
-            return {"status": "error", "error": "Invalid credentials"}
+            if not user:
+                logger.warning(f"Login failed: Invalid credentials for email {request.email}")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid credentials"
+                )
 
-        # Verify password
-        stored_password = user[3]  # user[3] is the password field
-        if not verify_password(password, stored_password):
-            return {"status": "error", "error": "Invalid credentials"}
+            # Verify password
+            stored_password = user[3]  # user[3] is the password field
+            if not verify_password(request.password, stored_password):
+                logger.warning(f"Login failed: Invalid password for email {request.email}")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid credentials"
+                )
 
-        return {
-            "status": "success",
-            "user": {"name": user[1], "email": user[2], "profilePic": user[4]}  # Include profilePic
-        }
+            logger.info(f"User {request.email} logged in successfully")
+            return {
+                "status": "success",
+                "user": {"name": user[1], "email": user[2], "profilePic": user[4]}
+            }
 
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+    except sqlite3.Error as e:
+        logger.error(f"Database error during login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
 
 # Forgot Password endpoint
 @app.post("/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
     """Handle password reset by updating the user's password in the database."""
-    email = request.email
-    new_password = request.new_password
+    if len(request.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters long"
+        )
 
-    # Validate input
-    if not email or not new_password:
-        return {"status": "error", "error": "Missing email or new password"}
-
-    if len(new_password) < 8:
-        return {"status": "error", "error": "New password must be at least 8 characters long"}
+    if not any(c.isupper() for c in request.new_password) or not any(c.isdigit() for c in request.new_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must contain at least one uppercase letter and one digit"
+        )
 
     try:
-        conn = sqlite3.connect(DATABASE)
-        cursor = conn.cursor()
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
 
-        # Check if user exists
-        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
-        user = cursor.fetchone()
-        if not user:
-            conn.close()
-            return {"status": "error", "error": "User with this email does not exist"}
+            # Check if user exists
+            cursor.execute('SELECT * FROM users WHERE email = ?', (request.email,))
+            user = cursor.fetchone()
+            if not user:
+                logger.warning(f"Forgot password failed: User with email {request.email} does not exist")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User with this email does not exist"
+                )
 
-        # Hash the new password
-        hashed_new_password = hash_password(new_password)
-        # Update the user's password in the database
-        cursor.execute('UPDATE users SET password = ? WHERE email = ?', (hashed_new_password, email))
-        conn.commit()
-        conn.close()
+            # Hash the new password
+            hashed_new_password = hash_password(request.new_password)
+            # Update the user's password in the database
+            cursor.execute('UPDATE users SET password = ? WHERE email = ?', (hashed_new_password, request.email))
+            conn.commit()
+            logger.info(f"Password reset successfully for user {request.email}")
 
         return {"status": "success", "message": "Password updated successfully"}
 
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+    except sqlite3.Error as e:
+        logger.error(f"Database error during forgot-password: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
 
 # Health check endpoint for Render
 @app.get("/healthz")
@@ -286,4 +298,4 @@ init_db()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=10000)  # Match Render port
