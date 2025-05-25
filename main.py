@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request, Response, Form, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr
 import sqlite3
 from argon2 import PasswordHasher
@@ -31,6 +33,21 @@ ALLOWED_USERS = {"roberto", "pablo", "shafeena"}
 
 # Initialize Argon2 password hasher
 ph = PasswordHasher()
+
+# Custom RequestValidationError handler to avoid decoding binary data
+@app.exception_handler(RequestValidationError)
+async def custom_validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Custom handler to avoid decoding binary data in validation errors."""
+    errors = []
+    for error in exc.errors():
+        # If the error involves binary data (e.g., profile_pic), represent it as a string
+        if 'input' in error and isinstance(error['input'], bytes):
+            error['input'] = "Binary data (e.g., file upload)"  # Avoid including raw bytes
+        errors.append(error)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": errors},
+    )
 
 def init_db():
     """Initialize the SQLite database and create the users table if it doesn't exist."""
@@ -135,18 +152,19 @@ async def signup(
             detail="Password must contain at least one uppercase letter and one digit"
         )
 
-    # Handle profile picture
+    # Handle profile picture (validate before reading to avoid issues with error messages)
     profile_pic_base64: Optional[str] = None
     if profile_pic:
+        # Validate file type before reading
+        if not profile_pic.content_type.startswith("image/"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Profile picture must be an image file"
+            )
+        
+        # Validate file size without reading the entire file (if possible)
+        # Note: FastAPI requires reading to get the size, so we read and validate together
         try:
-            # Validate file type
-            if not profile_pic.content_type.startswith("image/"):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Profile picture must be an image file"
-                )
-            
-            # Read the file and convert to base64
             contents = await profile_pic.read()
             if len(contents) > 2 * 1024 * 1024:  # Limit to 2MB
                 raise HTTPException(
@@ -298,4 +316,4 @@ init_db()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=10000)  # Match Render port
+    uvicorn.run(app, host="0.0.0.0", port=10000)
