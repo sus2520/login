@@ -358,3 +358,369 @@ Setting up libtesseract5:amd64 (5.3.4-1build5) ...
 Setting up tesseract-ocr (5.3.4-1build5) ...
 Processing triggers for man-db (2.12.0-4build2) ...
 Processing triggers for libc-bin (2.39-0ubuntu8.4) ...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+tesseract-ocr is already the newest version (5.3.4-1build5).
+tesseract-ocr-eng is already the newest version (1:4.1.0-2).
+tesseract-ocr-eng set to manually installed.
+The following additional packages will be installed:
+  bzip2-doc comerr-dev icu-devtools libacl1 libacl1-dev libarchive-dev
+  libattr1 libattr1-dev libbz2-dev libcurl4-openssl-dev libext2fs-dev
+  libgmp-dev libgmp10 libgmpxx4ldbl libicu-dev libleptonica-dev liblz4-dev
+  liblzma-dev liblzma5 libxml2 libxml2-dev libzstd-dev nettle-dev xz-utils
+Suggested packages:
+  doc-base libcurl4-doc libidn-dev libkrb5-dev libldap2-dev librtmp-dev
+  libssh2-1-dev pkg-config gmp-doc libgmp10-doc libmpfr-dev icu-doc
+  liblzma-doc
+The following NEW packages will be installed:
+  bzip2-doc comerr-dev icu-devtools libacl1-dev libarchive-dev libattr1-dev
+  libbz2-dev libcurl4-openssl-dev libext2fs-dev libgmp-dev libgmpxx4ldbl
+  libicu-dev libleptonica-dev liblz4-dev liblzma-dev libtesseract-dev
+  libxml2-dev libzstd-dev nettle-dev
+The following packages will be upgraded:
+  libacl1 libattr1 libgmp10 liblzma5 libxml2 xz-utils
+6 upgraded, 19 newly installed, 0 to remove and 156 not upgraded.
+Need to get 20.5 MB/21.7 MB of archives.
+After this operation, 80.7 MB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libacl1 amd64 2.3.2-1build1.1 [16.8 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libattr1 amd64 1:2.5.2-1build1.1 [11.4 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgmp10 amd64 2:6.3.0+dfsg-2ubuntu6.1 [253 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 bzip2-doc all 1.0.8-5.1build0.1 [499 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 icu-devtools amd64 74.2-1ubuntu3.1 [212 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libbz2-dev amd64 1.0.8-5.1build0.1 [33.6 kB]
+Get:7 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 liblz4-dev amd64 1.9.4-1build1.1 [87.6 kB]
+Get:8 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 liblzma-dev amd64 5.6.1+really5.4.5-1ubuntu0.2 [176 kB]
+Get:9 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libicu-dev amd64 74.2-1ubuntu3.1 [11.9 MB]
+Get:10 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libxml2-dev amd64 2.9.14+dfsg-1.3ubuntu3.3 [780 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libzstd-dev amd64 1.5.5+dfsg2-2build1.1 [364 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libattr1-dev amd64 1:2.5.2-1build1.1 [23.1 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libacl1-dev amd64 2.3.2-1build1.1 [78.5 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 comerr-dev amd64 2.1-1.47.0-2.4~exp1ubuntu4.1 [43.8 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libext2fs-dev amd64 1.47.0-2.4~exp1ubuntu4.1 [300 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgmpxx4ldbl amd64 2:6.3.0+dfsg-2ubuntu6.1 [9888 B]
+Get:17 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgmp-dev amd64 2:6.3.0+dfsg-2ubuntu6.1 [340 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 nettle-dev amd64 3.9.1-2.2build1.1 [1154 kB]
+Get:19 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libarchive-dev amd64 3.7.2-2ubuntu0.4 [589 kB]
+Get:20 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libcurl4-openssl-dev amd64 8.5.0-2ubuntu10.6 [446 kB]
+Get:21 http://archive.ubuntu.com/ubuntu noble/universe amd64 libleptonica-dev amd64 1.82.0-3build4 [1565 kB]
+Get:22 http://archive.ubuntu.com/ubuntu noble/universe amd64 libtesseract-dev amd64 5.3.4-1build5 [1633 kB]
+Fetched 20.5 MB in 4s (5215 kB/s)
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 79828 files and directories currently installed.)
+Preparing to unpack .../libacl1_2.3.2-1build1.1_amd64.deb ...
+Unpacking libacl1:amd64 (2.3.2-1build1.1) over (2.3.2-1build1) ...
+Setting up libacl1:amd64 (2.3.2-1build1.1) ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 79828 files and directories currently installed.)
+Preparing to unpack .../libattr1_1%3a2.5.2-1build1.1_amd64.deb ...
+Unpacking libattr1:amd64 (1:2.5.2-1build1.1) over (1:2.5.2-1build1) ...
+Setting up libattr1:amd64 (1:2.5.2-1build1.1) ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 79828 files and directories currently installed.)
+Preparing to unpack .../libgmp10_2%3a6.3.0+dfsg-2ubuntu6.1_amd64.deb ...
+Unpacking libgmp10:amd64 (2:6.3.0+dfsg-2ubuntu6.1) over (2:6.3.0+dfsg-2ubuntu6) ...
+Setting up libgmp10:amd64 (2:6.3.0+dfsg-2ubuntu6.1) ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 79828 files and directories currently installed.)
+Preparing to unpack .../liblzma5_5.6.1+really5.4.5-1ubuntu0.2_amd64.deb ...
+Unpacking liblzma5:amd64 (5.6.1+really5.4.5-1ubuntu0.2) over (5.6.1+really5.4.5-1build0.1) ...
+Setting up liblzma5:amd64 (5.6.1+really5.4.5-1ubuntu0.2) ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 79828 files and directories currently installed.)
+Preparing to unpack .../00-libxml2_2.9.14+dfsg-1.3ubuntu3.3_amd64.deb ...
+Unpacking libxml2:amd64 (2.9.14+dfsg-1.3ubuntu3.3) over (2.9.14+dfsg-1.3ubuntu3) ...
+Preparing to unpack .../01-xz-utils_5.6.1+really5.4.5-1ubuntu0.2_amd64.deb ...
+Unpacking xz-utils (5.6.1+really5.4.5-1ubuntu0.2) over (5.6.1+really5.4.5-1build0.1) ...
+Selecting previously unselected package bzip2-doc.
+Preparing to unpack .../02-bzip2-doc_1.0.8-5.1build0.1_all.deb ...
+Unpacking bzip2-doc (1.0.8-5.1build0.1) ...
+Selecting previously unselected package icu-devtools.
+Preparing to unpack .../03-icu-devtools_74.2-1ubuntu3.1_amd64.deb ...
+Unpacking icu-devtools (74.2-1ubuntu3.1) ...
+Selecting previously unselected package libbz2-dev:amd64.
+Preparing to unpack .../04-libbz2-dev_1.0.8-5.1build0.1_amd64.deb ...
+Unpacking libbz2-dev:amd64 (1.0.8-5.1build0.1) ...
+Selecting previously unselected package liblz4-dev:amd64.
+Preparing to unpack .../05-liblz4-dev_1.9.4-1build1.1_amd64.deb ...
+Unpacking liblz4-dev:amd64 (1.9.4-1build1.1) ...
+Selecting previously unselected package liblzma-dev:amd64.
+Preparing to unpack .../06-liblzma-dev_5.6.1+really5.4.5-1ubuntu0.2_amd64.deb ...
+Unpacking liblzma-dev:amd64 (5.6.1+really5.4.5-1ubuntu0.2) ...
+Selecting previously unselected package libicu-dev:amd64.
+Preparing to unpack .../07-libicu-dev_74.2-1ubuntu3.1_amd64.deb ...
+Unpacking libicu-dev:amd64 (74.2-1ubuntu3.1) ...
+Selecting previously unselected package libxml2-dev:amd64.
+Preparing to unpack .../08-libxml2-dev_2.9.14+dfsg-1.3ubuntu3.3_amd64.deb ...
+Unpacking libxml2-dev:amd64 (2.9.14+dfsg-1.3ubuntu3.3) ...
+Selecting previously unselected package libzstd-dev:amd64.
+Preparing to unpack .../09-libzstd-dev_1.5.5+dfsg2-2build1.1_amd64.deb ...
+Unpacking libzstd-dev:amd64 (1.5.5+dfsg2-2build1.1) ...
+Selecting previously unselected package libattr1-dev:amd64.
+Preparing to unpack .../10-libattr1-dev_1%3a2.5.2-1build1.1_amd64.deb ...
+Unpacking libattr1-dev:amd64 (1:2.5.2-1build1.1) ...
+Selecting previously unselected package libacl1-dev:amd64.
+Preparing to unpack .../11-libacl1-dev_2.3.2-1build1.1_amd64.deb ...
+Unpacking libacl1-dev:amd64 (2.3.2-1build1.1) ...
+Selecting previously unselected package comerr-dev:amd64.
+Preparing to unpack .../12-comerr-dev_2.1-1.47.0-2.4~exp1ubuntu4.1_amd64.deb ...
+Unpacking comerr-dev:amd64 (2.1-1.47.0-2.4~exp1ubuntu4.1) ...
+Selecting previously unselected package libext2fs-dev.
+Preparing to unpack .../13-libext2fs-dev_1.47.0-2.4~exp1ubuntu4.1_amd64.deb ...
+Unpacking libext2fs-dev (1.47.0-2.4~exp1ubuntu4.1) ...
+Selecting previously unselected package libgmpxx4ldbl:amd64.
+Preparing to unpack .../14-libgmpxx4ldbl_2%3a6.3.0+dfsg-2ubuntu6.1_amd64.deb ...
+Unpacking libgmpxx4ldbl:amd64 (2:6.3.0+dfsg-2ubuntu6.1) ...
+Selecting previously unselected package libgmp-dev:amd64.
+Preparing to unpack .../15-libgmp-dev_2%3a6.3.0+dfsg-2ubuntu6.1_amd64.deb ...
+Unpacking libgmp-dev:amd64 (2:6.3.0+dfsg-2ubuntu6.1) ...
+Selecting previously unselected package nettle-dev:amd64.
+Preparing to unpack .../16-nettle-dev_3.9.1-2.2build1.1_amd64.deb ...
+Unpacking nettle-dev:amd64 (3.9.1-2.2build1.1) ...
+Selecting previously unselected package libarchive-dev:amd64.
+Preparing to unpack .../17-libarchive-dev_3.7.2-2ubuntu0.4_amd64.deb ...
+Unpacking libarchive-dev:amd64 (3.7.2-2ubuntu0.4) ...
+Selecting previously unselected package libcurl4-openssl-dev:amd64.
+Preparing to unpack .../18-libcurl4-openssl-dev_8.5.0-2ubuntu10.6_amd64.deb ...
+Unpacking libcurl4-openssl-dev:amd64 (8.5.0-2ubuntu10.6) ...
+Selecting previously unselected package libleptonica-dev.
+Preparing to unpack .../19-libleptonica-dev_1.82.0-3build4_amd64.deb ...
+Unpacking libleptonica-dev (1.82.0-3build4) ...
+Selecting previously unselected package libtesseract-dev:amd64.
+Preparing to unpack .../20-libtesseract-dev_5.3.4-1build5_amd64.deb ...
+Unpacking libtesseract-dev:amd64 (5.3.4-1build5) ...
+Setting up bzip2-doc (1.0.8-5.1build0.1) ...
+Setting up libzstd-dev:amd64 (1.5.5+dfsg2-2build1.1) ...
+Setting up libattr1-dev:amd64 (1:2.5.2-1build1.1) ...
+Setting up libleptonica-dev (1.82.0-3build4) ...
+Setting up libgmpxx4ldbl:amd64 (2:6.3.0+dfsg-2ubuntu6.1) ...
+Setting up libcurl4-openssl-dev:amd64 (8.5.0-2ubuntu10.6) ...
+Setting up xz-utils (5.6.1+really5.4.5-1ubuntu0.2) ...
+Setting up comerr-dev:amd64 (2.1-1.47.0-2.4~exp1ubuntu4.1) ...
+Setting up icu-devtools (74.2-1ubuntu3.1) ...
+Setting up liblz4-dev:amd64 (1.9.4-1build1.1) ...
+Setting up liblzma-dev:amd64 (5.6.1+really5.4.5-1ubuntu0.2) ...
+Setting up libext2fs-dev (1.47.0-2.4~exp1ubuntu4.1) ...
+Setting up libicu-dev:amd64 (74.2-1ubuntu3.1) ...
+Setting up libxml2:amd64 (2.9.14+dfsg-1.3ubuntu3.3) ...
+Setting up libacl1-dev:amd64 (2.3.2-1build1.1) ...
+Setting up libbz2-dev:amd64 (1.0.8-5.1build0.1) ...
+Setting up libgmp-dev:amd64 (2:6.3.0+dfsg-2ubuntu6.1) ...
+Setting up nettle-dev:amd64 (3.9.1-2.2build1.1) ...
+Setting up libxml2-dev:amd64 (2.9.14+dfsg-1.3ubuntu3.3) ...
+Setting up libarchive-dev:amd64 (3.7.2-2ubuntu0.4) ...
+Setting up libtesseract-dev:amd64 (5.3.4-1build5) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Processing triggers for install-info (7.1-3build2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.4) ...
+Collecting blinker
+  Using cached blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+Collecting langchain-community (from -r backend/requirements.txt (line 1))
+  Using cached langchain_community-0.3.24-py3-none-any.whl.metadata (2.5 kB)
+Collecting langchain (from -r backend/requirements.txt (line 2))
+  Using cached langchain-0.3.25-py3-none-any.whl.metadata (7.8 kB)
+Collecting uvicorn (from -r backend/requirements.txt (line 3))
+  Using cached uvicorn-0.34.2-py3-none-any.whl.metadata (6.5 kB)
+Collecting fastapi (from -r backend/requirements.txt (line 4))
+  Using cached fastapi-0.115.12-py3-none-any.whl.metadata (27 kB)
+Collecting langchain-core<1.0.0,>=0.3.59 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached langchain_core-0.3.60-py3-none-any.whl.metadata (5.8 kB)
+Collecting SQLAlchemy<3,>=1.4 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached sqlalchemy-2.0.41-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (9.6 kB)
+Collecting requests<3,>=2 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached requests-2.32.3-py3-none-any.whl.metadata (4.6 kB)
+Collecting PyYAML>=5.3 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached PyYAML-6.0.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.1 kB)
+Collecting aiohttp<4.0.0,>=3.8.3 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached aiohttp-3.11.18-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.7 kB)
+Collecting tenacity!=8.4.0,<10,>=8.1.0 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached tenacity-9.1.2-py3-none-any.whl.metadata (1.2 kB)
+Collecting dataclasses-json<0.7,>=0.5.7 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached dataclasses_json-0.6.7-py3-none-any.whl.metadata (25 kB)
+Collecting pydantic-settings<3.0.0,>=2.4.0 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached pydantic_settings-2.9.1-py3-none-any.whl.metadata (3.8 kB)
+Collecting langsmith<0.4,>=0.1.125 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached langsmith-0.3.42-py3-none-any.whl.metadata (15 kB)
+Collecting httpx-sse<1.0.0,>=0.4.0 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached httpx_sse-0.4.0-py3-none-any.whl.metadata (9.0 kB)
+Collecting numpy>=1.26.2 (from langchain-community->-r backend/requirements.txt (line 1))
+  Using cached numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (62 kB)
+Collecting langchain-text-splitters<1.0.0,>=0.3.8 (from langchain->-r backend/requirements.txt (line 2))
+  Using cached langchain_text_splitters-0.3.8-py3-none-any.whl.metadata (1.9 kB)
+Collecting pydantic<3.0.0,>=2.7.4 (from langchain->-r backend/requirements.txt (line 2))
+  Using cached pydantic-2.11.4-py3-none-any.whl.metadata (66 kB)
+Collecting click>=7.0 (from uvicorn->-r backend/requirements.txt (line 3))
+  Using cached click-8.2.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting h11>=0.8 (from uvicorn->-r backend/requirements.txt (line 3))
+  Using cached h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Collecting starlette<0.47.0,>=0.40.0 (from fastapi->-r backend/requirements.txt (line 4))
+  Using cached starlette-0.46.2-py3-none-any.whl.metadata (6.2 kB)
+Collecting typing-extensions>=4.8.0 (from fastapi->-r backend/requirements.txt (line 4))
+  Using cached typing_extensions-4.13.2-py3-none-any.whl.metadata (3.0 kB)
+Collecting aiohappyeyeballs>=2.3.0 (from aiohttp<4.0.0,>=3.8.3->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached aiohappyeyeballs-2.6.1-py3-none-any.whl.metadata (5.9 kB)
+Collecting aiosignal>=1.1.2 (from aiohttp<4.0.0,>=3.8.3->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached aiosignal-1.3.2-py2.py3-none-any.whl.metadata (3.8 kB)
+Collecting attrs>=17.3.0 (from aiohttp<4.0.0,>=3.8.3->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached attrs-25.3.0-py3-none-any.whl.metadata (10 kB)
+Collecting frozenlist>=1.1.1 (from aiohttp<4.0.0,>=3.8.3->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached frozenlist-1.6.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (16 kB)
+Collecting multidict<7.0,>=4.5 (from aiohttp<4.0.0,>=3.8.3->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached multidict-6.4.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.3 kB)
+Collecting propcache>=0.2.0 (from aiohttp<4.0.0,>=3.8.3->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached propcache-0.3.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (10 kB)
+Collecting yarl<2.0,>=1.17.0 (from aiohttp<4.0.0,>=3.8.3->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached yarl-1.20.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (72 kB)
+Collecting marshmallow<4.0.0,>=3.18.0 (from dataclasses-json<0.7,>=0.5.7->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached marshmallow-3.26.1-py3-none-any.whl.metadata (7.3 kB)
+Collecting typing-inspect<1,>=0.4.0 (from dataclasses-json<0.7,>=0.5.7->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached typing_inspect-0.9.0-py3-none-any.whl.metadata (1.5 kB)
+Collecting jsonpatch<2.0,>=1.33 (from langchain-core<1.0.0,>=0.3.59->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached jsonpatch-1.33-py2.py3-none-any.whl.metadata (3.0 kB)
+Collecting packaging<25,>=23.2 (from langchain-core<1.0.0,>=0.3.59->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached packaging-24.2-py3-none-any.whl.metadata (3.2 kB)
+Collecting httpx<1,>=0.23.0 (from langsmith<0.4,>=0.1.125->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+Collecting orjson<4.0.0,>=3.9.14 (from langsmith<0.4,>=0.1.125->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached orjson-3.10.18-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (41 kB)
+Collecting requests-toolbelt<2.0.0,>=1.0.0 (from langsmith<0.4,>=0.1.125->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+Collecting zstandard<0.24.0,>=0.23.0 (from langsmith<0.4,>=0.1.125->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached zstandard-0.23.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (3.0 kB)
+Collecting annotated-types>=0.6.0 (from pydantic<3.0.0,>=2.7.4->langchain->-r backend/requirements.txt (line 2))
+  Using cached annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+Collecting pydantic-core==2.33.2 (from pydantic<3.0.0,>=2.7.4->langchain->-r backend/requirements.txt (line 2))
+  Using cached pydantic_core-2.33.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.8 kB)
+Collecting typing-inspection>=0.4.0 (from pydantic<3.0.0,>=2.7.4->langchain->-r backend/requirements.txt (line 2))
+  Using cached typing_inspection-0.4.0-py3-none-any.whl.metadata (2.6 kB)
+Collecting python-dotenv>=0.21.0 (from pydantic-settings<3.0.0,>=2.4.0->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached python_dotenv-1.1.0-py3-none-any.whl.metadata (24 kB)
+Collecting charset-normalizer<4,>=2 (from requests<3,>=2->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached charset_normalizer-3.4.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (35 kB)
+Collecting idna<4,>=2.5 (from requests<3,>=2->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached idna-3.10-py3-none-any.whl.metadata (10 kB)
+Collecting urllib3<3,>=1.21.1 (from requests<3,>=2->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached urllib3-2.4.0-py3-none-any.whl.metadata (6.5 kB)
+Collecting certifi>=2017.4.17 (from requests<3,>=2->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached certifi-2025.4.26-py3-none-any.whl.metadata (2.5 kB)
+Collecting greenlet>=1 (from SQLAlchemy<3,>=1.4->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached greenlet-3.2.2-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (4.1 kB)
+Collecting anyio<5,>=3.6.2 (from starlette<0.47.0,>=0.40.0->fastapi->-r backend/requirements.txt (line 4))
+  Using cached anyio-4.9.0-py3-none-any.whl.metadata (4.7 kB)
+Collecting sniffio>=1.1 (from anyio<5,>=3.6.2->starlette<0.47.0,>=0.40.0->fastapi->-r backend/requirements.txt (line 4))
+  Using cached sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+Collecting httpcore==1.* (from httpx<1,>=0.23.0->langsmith<0.4,>=0.1.125->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+Collecting jsonpointer>=1.9 (from jsonpatch<2.0,>=1.33->langchain-core<1.0.0,>=0.3.59->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached jsonpointer-3.0.0-py2.py3-none-any.whl.metadata (2.3 kB)
+Collecting mypy-extensions>=0.3.0 (from typing-inspect<1,>=0.4.0->dataclasses-json<0.7,>=0.5.7->langchain-community->-r backend/requirements.txt (line 1))
+  Using cached mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
+Using cached blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Using cached langchain_community-0.3.24-py3-none-any.whl (2.5 MB)
+Using cached langchain-0.3.25-py3-none-any.whl (1.0 MB)
+Using cached uvicorn-0.34.2-py3-none-any.whl (62 kB)
+Using cached fastapi-0.115.12-py3-none-any.whl (95 kB)
+Using cached aiohttp-3.11.18-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (1.7 MB)
+Using cached click-8.2.0-py3-none-any.whl (102 kB)
+Using cached dataclasses_json-0.6.7-py3-none-any.whl (28 kB)
+Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+Using cached httpx_sse-0.4.0-py3-none-any.whl (7.8 kB)
+Using cached langchain_core-0.3.60-py3-none-any.whl (437 kB)
+Using cached langchain_text_splitters-0.3.8-py3-none-any.whl (32 kB)
+Using cached langsmith-0.3.42-py3-none-any.whl (360 kB)
+Using cached numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.5 MB)
+Using cached pydantic-2.11.4-py3-none-any.whl (443 kB)
+Using cached pydantic_core-2.33.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.0 MB)
+Using cached pydantic_settings-2.9.1-py3-none-any.whl (44 kB)
+Using cached PyYAML-6.0.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (767 kB)
+Using cached requests-2.32.3-py3-none-any.whl (64 kB)
+Using cached sqlalchemy-2.0.41-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+Using cached starlette-0.46.2-py3-none-any.whl (72 kB)
+Using cached tenacity-9.1.2-py3-none-any.whl (28 kB)
+Using cached typing_extensions-4.13.2-py3-none-any.whl (45 kB)
+Using cached aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
+Using cached aiosignal-1.3.2-py2.py3-none-any.whl (7.6 kB)
+Using cached annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Using cached anyio-4.9.0-py3-none-any.whl (100 kB)
+Using cached attrs-25.3.0-py3-none-any.whl (63 kB)
+Using cached certifi-2025.4.26-py3-none-any.whl (159 kB)
+Using cached charset_normalizer-3.4.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (148 kB)
+Using cached frozenlist-1.6.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (316 kB)
+Using cached greenlet-3.2.2-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (603 kB)
+Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+Using cached idna-3.10-py3-none-any.whl (70 kB)
+Using cached jsonpatch-1.33-py2.py3-none-any.whl (12 kB)
+Using cached marshmallow-3.26.1-py3-none-any.whl (50 kB)
+Using cached multidict-6.4.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (223 kB)
+Using cached orjson-3.10.18-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (133 kB)
+Using cached packaging-24.2-py3-none-any.whl (65 kB)
+Using cached propcache-0.3.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (245 kB)
+Using cached python_dotenv-1.1.0-py3-none-any.whl (20 kB)
+Using cached requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+Using cached typing_inspect-0.9.0-py3-none-any.whl (8.8 kB)
+Using cached typing_inspection-0.4.0-py3-none-any.whl (14 kB)
+Using cached urllib3-2.4.0-py3-none-any.whl (128 kB)
+Using cached yarl-1.20.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (349 kB)
+Using cached zstandard-0.23.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (5.4 MB)
+Using cached jsonpointer-3.0.0-py2.py3-none-any.whl (7.6 kB)
+Using cached mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
+Using cached sniffio-1.3.1-py3-none-any.whl (10 kB)
+Installing collected packages: zstandard, urllib3, typing-extensions, tenacity, sniffio, PyYAML, python-dotenv, propcache, packaging, orjson, numpy, mypy-extensions, multidict, jsonpointer, idna, httpx-sse, h11, greenlet, frozenlist, click, charset-normalizer, certifi, blinker, attrs, annotated-types, aiohappyeyeballs, yarl, uvicorn, typing-inspection, typing-inspect, SQLAlchemy, requests, pydantic-core, marshmallow, jsonpatch, httpcore, anyio, aiosignal, starlette, requests-toolbelt, pydantic, httpx, dataclasses-json, aiohttp, pydantic-settings, langsmith, fastapi, langchain-core, langchain-text-splitters, langchain, langchain-community
+Successfully installed PyYAML-6.0.2 SQLAlchemy-2.0.41 aiohappyeyeballs-2.6.1 aiohttp-3.11.18 aiosignal-1.3.2 annotated-types-0.7.0 anyio-4.9.0 attrs-25.3.0 blinker-1.9.0 certifi-2025.4.26 charset-normalizer-3.4.2 click-8.2.0 dataclasses-json-0.6.7 fastapi-0.115.12 frozenlist-1.6.0 greenlet-3.2.2 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 httpx-sse-0.4.0 idna-3.10 jsonpatch-1.33 jsonpointer-3.0.0 langchain-0.3.25 langchain-community-0.3.24 langchain-core-0.3.60 langchain-text-splitters-0.3.8 langsmith-0.3.42 marshmallow-3.26.1 multidict-6.4.3 mypy-extensions-1.1.0 numpy-2.2.6 orjson-3.10.18 packaging-24.2 propcache-0.3.1 pydantic-2.11.4 pydantic-core-2.33.2 pydantic-settings-2.9.1 python-dotenv-1.1.0 requests-2.32.3 requests-toolbelt-1.0.0 sniffio-1.3.1 starlette-0.46.2 tenacity-9.1.2 typing-extensions-4.13.2 typing-inspect-0.9.0 typing-inspection-0.4.0 urllib3-2.4.0 uvicorn-0.34.2 yarl-1.20.0 zstandard-0.23.0
+Requirement already satisfied: langchain-ollama in ./venv/lib/python3.12/site-packages (0.3.3)
+Requirement already satisfied: langchain-community in ./venv/lib/python3.12/site-packages (0.3.24)
+Requirement already satisfied: python-docx in ./venv/lib/python3.12/site-packages (1.1.2)
+Requirement already satisfied: PyPDF2 in ./venv/lib/python3.12/site-packages (3.0.1)
+Requirement already satisfied: openpyxl in ./venv/lib/python3.12/site-packages (3.1.5)
+Requirement already satisfied: pandas in ./venv/lib/python3.12/site-packages (2.2.3)
+Requirement already satisfied: Pillow in ./venv/lib/python3.12/site-packages (11.2.1)
+Requirement already satisfied: pytesseract in ./venv/lib/python3.12/site-packages (0.3.13)
+Requirement already satisfied: python-multipart in ./venv/lib/python3.12/site-packages (0.0.20)
+Requirement already satisfied: ollama<1.0.0,>=0.4.8 in ./venv/lib/python3.12/site-packages (from langchain-ollama) (0.4.8)
+Requirement already satisfied: langchain-core<1.0.0,>=0.3.60 in ./venv/lib/python3.12/site-packages (from langchain-ollama) (0.3.60)
+Requirement already satisfied: langchain<1.0.0,>=0.3.25 in ./venv/lib/python3.12/site-packages (from langchain-community) (0.3.25)
+Requirement already satisfied: SQLAlchemy<3,>=1.4 in ./venv/lib/python3.12/site-packages (from langchain-community) (2.0.41)
+Requirement already satisfied: requests<3,>=2 in ./venv/lib/python3.12/site-packages (from langchain-community) (2.32.3)
+Requirement already satisfied: PyYAML>=5.3 in ./venv/lib/python3.12/site-packages (from langchain-community) (6.0.2)
+Requirement already satisfied: aiohttp<4.0.0,>=3.8.3 in ./venv/lib/python3.12/site-packages (from langchain-community) (3.11.18)
+Requirement already satisfied: tenacity!=8.4.0,<10,>=8.1.0 in ./venv/lib/python3.12/site-packages (from langchain-community) (9.1.2)
+Requirement already satisfied: dataclasses-json<0.7,>=0.5.7 in ./venv/lib/python3.12/site-packages (from langchain-community) (0.6.7)
+Requirement already satisfied: pydantic-settings<3.0.0,>=2.4.0 in ./venv/lib/python3.12/site-packages (from langchain-community) (2.9.1)
+Requirement already satisfied: langsmith<0.4,>=0.1.125 in ./venv/lib/python3.12/site-packages (from langchain-community) (0.3.42)
+Requirement already satisfied: httpx-sse<1.0.0,>=0.4.0 in ./venv/lib/python3.12/site-packages (from langchain-community) (0.4.0)
+Requirement already satisfied: numpy>=1.26.2 in ./venv/lib/python3.12/site-packages (from langchain-community) (2.2.6)
+Requirement already satisfied: lxml>=3.1.0 in ./venv/lib/python3.12/site-packages (from python-docx) (5.4.0)
+Requirement already satisfied: typing-extensions>=4.9.0 in ./venv/lib/python3.12/site-packages (from python-docx) (4.13.2)
+Requirement already satisfied: et-xmlfile in ./venv/lib/python3.12/site-packages (from openpyxl) (2.0.0)
+Requirement already satisfied: python-dateutil>=2.8.2 in ./venv/lib/python3.12/site-packages (from pandas) (2.9.0.post0)
+Requirement already satisfied: pytz>=2020.1 in ./venv/lib/python3.12/site-packages (from pandas) (2025.2)
+Requirement already satisfied: tzdata>=2022.7 in ./venv/lib/python3.12/site-packages (from pandas) (2025.2)
+Requirement already satisfied: packaging>=21.3 in ./venv/lib/python3.12/site-packages (from pytesseract) (24.2)
+Requirement already satisfied: aiohappyeyeballs>=2.3.0 in ./venv/lib/python3.12/site-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (2.6.1)
+Requirement already satisfied: aiosignal>=1.1.2 in ./venv/lib/python3.12/site-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (1.3.2)
+Requirement already satisfied: attrs>=17.3.0 in ./venv/lib/python3.12/site-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (25.3.0)
+Requirement already satisfied: frozenlist>=1.1.1 in ./venv/lib/python3.12/site-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (1.6.0)
+Requirement already satisfied: multidict<7.0,>=4.5 in ./venv/lib/python3.12/site-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (6.4.3)
+Requirement already satisfied: propcache>=0.2.0 in ./venv/lib/python3.12/site-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (0.3.1)
+Requirement already satisfied: yarl<2.0,>=1.17.0 in ./venv/lib/python3.12/site-packages (from aiohttp<4.0.0,>=3.8.3->langchain-community) (1.20.0)
+Requirement already satisfied: marshmallow<4.0.0,>=3.18.0 in ./venv/lib/python3.12/site-packages (from dataclasses-json<0.7,>=0.5.7->langchain-community) (3.26.1)
+Requirement already satisfied: typing-inspect<1,>=0.4.0 in ./venv/lib/python3.12/site-packages (from dataclasses-json<0.7,>=0.5.7->langchain-community) (0.9.0)
+Requirement already satisfied: langchain-text-splitters<1.0.0,>=0.3.8 in ./venv/lib/python3.12/site-packages (from langchain<1.0.0,>=0.3.25->langchain-community) (0.3.8)
+Requirement already satisfied: pydantic<3.0.0,>=2.7.4 in ./venv/lib/python3.12/site-packages (from langchain<1.0.0,>=0.3.25->langchain-community) (2.11.4)
+Requirement already satisfied: jsonpatch<2.0,>=1.33 in ./venv/lib/python3.12/site-packages (from langchain-core<1.0.0,>=0.3.60->langchain-ollama) (1.33)
+Requirement already satisfied: httpx<1,>=0.23.0 in ./venv/lib/python3.12/site-packages (from langsmith<0.4,>=0.1.125->langchain-community) (0.28.1)
+Requirement already satisfied: orjson<4.0.0,>=3.9.14 in ./venv/lib/python3.12/site-packages (from langsmith<0.4,>=0.1.125->langchain-community) (3.10.18)
+Requirement already satisfied: requests-toolbelt<2.0.0,>=1.0.0 in ./venv/lib/python3.12/site-packages (from langsmith<0.4,>=0.1.125->langchain-community) (1.0.0)
+Requirement already satisfied: zstandard<0.24.0,>=0.23.0 in ./venv/lib/python3.12/site-packages (from langsmith<0.4,>=0.1.125->langchain-community) (0.23.0)
+Requirement already satisfied: python-dotenv>=0.21.0 in ./venv/lib/python3.12/site-packages (from pydantic-settings<3.0.0,>=2.4.0->langchain-community) (1.1.0)
+Requirement already satisfied: typing-inspection>=0.4.0 in ./venv/lib/python3.12/site-packages (from pydantic-settings<3.0.0,>=2.4.0->langchain-community) (0.4.0)
+Requirement already satisfied: six>=1.5 in ./venv/lib/python3.12/site-packages (from python-dateutil>=2.8.2->pandas) (1.17.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in ./venv/lib/python3.12/site-packages (from requests<3,>=2->langchain-community) (3.4.2)
+Requirement already satisfied: idna<4,>=2.5 in ./venv/lib/python3.12/site-packages (from requests<3,>=2->langchain-community) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in ./venv/lib/python3.12/site-packages (from requests<3,>=2->langchain-community) (2.4.0)
+Requirement already satisfied: certifi>=2017.4.17 in ./venv/lib/python3.12/site-packages (from requests<3,>=2->langchain-community) (2025.4.26)
+Requirement already satisfied: greenlet>=1 in ./venv/lib/python3.12/site-packages (from SQLAlchemy<3,>=1.4->langchain-community) (3.2.2)
+Requirement already satisfied: anyio in ./venv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->langsmith<0.4,>=0.1.125->langchain-community) (4.9.0)
+Requirement already satisfied: httpcore==1.* in ./venv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->langsmith<0.4,>=0.1.125->langchain-community) (1.0.9)
+Requirement already satisfied: h11>=0.16 in ./venv/lib/python3.12/site-packages (from httpcore==1.*->httpx<1,>=0.23.0->langsmith<0.4,>=0.1.125->langchain-community) (0.16.0)
+Requirement already satisfied: jsonpointer>=1.9 in ./venv/lib/python3.12/site-packages (from jsonpatch<2.0,>=1.33->langchain-core<1.0.0,>=0.3.60->langchain-ollama) (3.0.0)
+Requirement already satisfied: annotated-types>=0.6.0 in ./venv/lib/python3.12/site-packages (from pydantic<3.0.0,>=2.7.4->langchain<1.0.0,>=0.3.25->langchain-community) (0.7.0)
+Requirement already satisfied: pydantic-core==2.33.2 in ./venv/lib/python3.12/site-packages (from pydantic<3.0.0,>=2.7.4->langchain<1.0.0,>=0.3.25->langchain-community) (2.33.2)
+Requirement already satisfied: mypy-extensions>=0.3.0 in ./venv/lib/python3.12/site-packages (from typing-inspect<1,>=0.4.0->dataclasses-json<0.7,>=0.5.7->langchain-community) (1.1.0)
+Requirement already satisfied: sniffio>=1.1 in ./venv/lib/python3.12/site-packages (from anyio->httpx<1,>=0.23.0->langsmith<0.4,>=0.1.125->langchain-community) (1.3.1)

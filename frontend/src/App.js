@@ -2,8 +2,7 @@ import React, { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import './App.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8888';
-
+const API_URL = 'http://localhost:8888';
 function App() {
   const [chatSessions, setChatSessions] = useState([]); // List of chat sessions
   const [currentSession, setCurrentSession] = useState(null); // Current active session
