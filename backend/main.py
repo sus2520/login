@@ -25,7 +25,7 @@ app = FastAPI()
 # CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://lacd.onrender.com", "http://localhost:3000", "https://login-1-8dx3.onrender.com"],
+    allow_origins=["https://lacd.onrender.com", "http://localhost:3000", "https://llama3.test-hr.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
