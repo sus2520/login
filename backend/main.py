@@ -8,10 +8,14 @@ import base64
 from typing import Optional
 import logging
 import os
+import json
 from dotenv import load_dotenv
 import re
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Load environment variables
 load_dotenv()
@@ -21,11 +25,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://lacd.onrender.com", "https://llama3.test-hr.com"],
+    allow_origins=["https://lacd.onrender.com", "https://llama3.test-hr.com", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,21 +42,19 @@ app.add_middleware(
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logger.error(f"Validation error: {exc.errors()}")
-
     def safe_encoder(obj):
         if isinstance(obj, UploadFile):
             return {"filename": obj.filename, "content_type": obj.content_type}
         elif isinstance(obj, bytes):
             return f"<{len(obj)} bytes>"
         return str(obj)
-
     safe_detail = jsonable_encoder(exc.errors(), custom_encoder={UploadFile: safe_encoder, bytes: safe_encoder})
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": safe_detail},
     )
 
-# In-memory user storage
+# In-memory user storage with JSON persistence
 ph = PasswordHasher()
 DEFAULT_USER = {
     "name": "Shafeena",
@@ -57,15 +62,34 @@ DEFAULT_USER = {
     "password": ph.hash("12345$ABCd"),
     "profile_pic": None
 }
-users = [DEFAULT_USER]
+USER_FILE = "users.json"
 
-# Load allowed users from environment variable
+def load_users():
+    try:
+        with open(USER_FILE, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logger.info("users.json not found, initializing with DEFAULT_USER")
+        return [DEFAULT_USER]
+
+def save_users(users):
+    try:
+        with open(USER_FILE, "w") as f:
+            json.dump(users, f, indent=2)
+        logger.info("Users saved to users.json")
+    except Exception as e:
+        logger.error(f"Failed to save users to users.json: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to save user data")
+
+users = load_users()
+
+# Load allowed users
 ALLOWED_USERS = set(os.getenv("ALLOWED_USERS", "roberto,pablo,shafeena").lower().split(","))
 if not ALLOWED_USERS:
     logger.error("ALLOWED_USERS environment variable is not set or empty")
     raise ValueError("ALLOWED_USERS environment variable must be set with a comma-separated list of usernames")
 
-# Helper functions for password hashing
+# Helper functions
 def hash_password(password: str) -> str:
     return ph.hash(password)
 
@@ -98,44 +122,34 @@ async def favicon():
     return Response(status_code=204)
 
 @app.post("/signup")
+@limiter.limit("5/minute")
 async def signup(
+    request: Request,
     name: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
     profile_pic: Optional[UploadFile] = File(None)
 ):
     logger.info(f"Received signup request for email: {email}")
-
-    # Normalize and validate name
     name = name.strip()
     if not name:
         logger.warning("Signup failed: Name cannot be empty")
         raise HTTPException(status_code=400, detail="Name cannot be empty")
-
-    # Check if name is allowed
     if name.lower() not in ALLOWED_USERS:
         logger.warning(f"Signup failed: User '{name}' is not allowed to sign up")
         raise HTTPException(status_code=403, detail=f"User '{name}' is not allowed to sign up")
-
-    # Validate email format
     if not EMAIL_REGEX.match(email):
         logger.warning(f"Signup failed: Invalid email format for email: {email}")
         raise HTTPException(status_code=400, detail="Invalid email format")
-
-    # Validate password complexity
     if len(password) < 8:
         logger.warning(f"Signup failed: Password too short for email: {email}")
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
     if not any(c.isupper() for c in password) or not any(c.isdigit() for c in password):
         logger.warning(f"Signup failed: Password complexity not met for email: {email}")
         raise HTTPException(status_code=400, detail="Password must contain at least one uppercase letter and one digit")
-
-    # Check if email already exists
     if any(user["email"] == email for user in users):
         logger.warning(f"Signup failed: Email already exists: {email}")
         raise HTTPException(status_code=409, detail="Email already exists")
-
-    # Handle profile picture
     profile_pic_base64: Optional[str] = None
     if profile_pic:
         if not profile_pic.content_type.startswith("image/"):
@@ -143,15 +157,13 @@ async def signup(
             raise HTTPException(status_code=400, detail="Profile picture must be an image file")
         try:
             contents = await profile_pic.read()
-            if len(contents) > 2 * 1024 * 1024:  # 2MB limit
+            if len(contents) > 2 * 1024 * 1024:
                 logger.warning(f"Signup failed: Profile picture too large for email: {email}")
                 raise HTTPException(status_code=400, detail="Profile picture size must be less than 2MB")
             profile_pic_base64 = base64.b64encode(contents).decode('utf-8')
         except Exception as e:
             logger.error(f"Failed to process profile picture for email {email}: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Failed to process profile picture: {str(e)}")
-
-    # Store new user
     hashed_password = hash_password(password)
     new_user = {
         "name": name,
@@ -160,53 +172,50 @@ async def signup(
         "profile_pic": profile_pic_base64
     }
     users.append(new_user)
+    save_users(users)
     logger.info(f"User {email} signed up successfully")
-
     return {
         "status": "success",
         "user": {"name": name, "email": email, "profilePic": profile_pic_base64}
     }
 
 @app.post("/login")
-async def login(request: LoginRequest):
-    logger.info(f"Received login request for email: {request.email}")
-    
-    user = next((user for user in users if user["email"] == request.email), None)
-    
+@limiter.limit("10/minute")
+async def login(request: Request, login_request: LoginRequest):
+    logger.info(f"Received login request for email: {login_request.email}")
+    user = next((user for user in users if user["email"] == login_request.email), None)
     if not user:
-        logger.warning(f"Login failed: Invalid credentials for email {request.email}")
+        logger.warning(f"Login failed: Invalid credentials for email {login_request.email}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    if not verify_password(request.password, user["password"]):
-        logger.warning(f"Login failed: Invalid password for email {request.email}")
+    if not verify_password(login_request.password, user["password"]):
+        logger.warning(f"Login failed: Invalid password for email {login_request.email}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    logger.info(f"User {request.email} logged in successfully")
+    logger.info(f"User {login_request.email} logged in successfully")
     return {
         "status": "success",
         "user": {"name": user["name"], "email": user["email"], "profilePic": user["profile_pic"]}
     }
 
 @app.post("/forgot-password")
-async def forgot_password(request: ForgotPasswordRequest):
-    logger.info(f"Received forgot-password request for email: {request.email}")
-    
-    if len(request.new_password) < 8:
-        logger.warning(f"Forgot-password failed: Password too short for email: {request.email}")
+@limiter.limit("5/minute")
+async def forgot_password(request: Request, forgot_request: ForgotPasswordRequest):
+    logger.info(f"Received forgot-password request for email: {forgot_request.email}")
+    if len(forgot_request.new_password) < 8:
+        logger.warning(f"Forgot-password failed: Password too short for email: {forgot_request.email}")
         raise HTTPException(status_code=400, detail="New password must be at least 8 characters long")
-    if not any(c.isupper() for c in request.new_password) or not any(c.isdigit() for c in request.new_password):
-        logger.warning(f"Forgot-password failed: Password complexity not met for email: {request.email}")
+    if not any(c.isupper() for c in forgot_request.new_password) or not any(c.isdigit() for c in forgot_request.new_password):
+        logger.warning(f"Forgot-password failed: Password complexity not met for email: {forgot_request.email}")
         raise HTTPException(status_code=400, detail="New password must contain at least one uppercase letter and one digit")
-
-    user = next((user for user in users if user["email"] == request.email), None)
+    user = next((user for user in users if user["email"] == forgot_request.email), None)
     if not user:
-        logger.warning(f"Forgot password failed: User with email {request.email} does not exist")
+        logger.warning(f"Forgot password failed: User with email {forgot_request.email} does not exist")
         raise HTTPException(status_code=404, detail="User with this email does not exist")
-
-    user["password"] = hash_password(request.new_password)
-    logger.info(f"Password reset successfully for user {request.email}")
-
-    return {"status": "success", "message": "Password updated successfully"}
+    user["password"] = hash_password(forgot_request.new_password)
+    save_users(users)
+    logger.info(f"Password reset successfully for user {forgot_request.email}")
+    response = {"status": "success", "message": "Password updated successfully"}
+    logger.info(f"Response sent: {response}")
+    return response
 
 @app.get("/healthz")
 async def health_check():
