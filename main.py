@@ -108,7 +108,7 @@ def save_users(users):
     except Exception as e:
         logger.error(f"Failed to save users to {USER_FILE}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to save user data")
-    
+        
 users = load_users()
 
 # Load allowed users
