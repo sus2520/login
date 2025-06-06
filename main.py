@@ -192,7 +192,7 @@ async def signup(
     }
 
 @app.post("/login")
-@limiter.limit("10/minute")
+@limiter.limit("20/minute")
 async def login(request: Request, login_request: LoginRequest):
     logger.info(f"Received login request for email: {login_request.email}")
     user = next((user for user in users if user["email"] == login_request.email), None)
