@@ -70,30 +70,14 @@ DEFAULT_USERS = [
         "profile_pic": None
     }
 ]
-# In-memory user storage with JSON persistence
-ph = PasswordHasher()
-DEFAULT_USERS = [
-    {
-        "name": "Shafeena",
-        "email": "shafeenafarheen2025@gmail.com",
-        "password": ph.hash("12345$ABCd"),
-        "profile_pic": None
-    },
-    {
-        "name": "Pablo",
-        "email": "pablo@vya.consulting",
-        "password": ph.hash("A#347.VYA#"),
-        "profile_pic": None
-    }
-]
-USER_FILE = "cred.json"  # Changed from users.json to cred.json
+USER_FILE = "users.json"
 
 def load_users():
     try:
         with open(USER_FILE, "r") as f:
             return json.load(f)
     except FileNotFoundError:
-        logger.info(f"{USER_FILE} not found, initializing with DEFAULT_USERS")
+        logger.info("users.json not found, initializing with DEFAULT_USERS")
         save_users(DEFAULT_USERS)  # Save default users if file doesn't exist
         return DEFAULT_USERS
     except Exception as e:
@@ -104,11 +88,11 @@ def save_users(users):
     try:
         with open(USER_FILE, "w") as f:
             json.dump(users, f, indent=2)
-        logger.info(f"Users saved to {USER_FILE}")
+        logger.info("Users saved to users.json")
     except Exception as e:
-        logger.error(f"Failed to save users to {USER_FILE}: {str(e)}")
+        logger.error(f"Failed to save users to users.json: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to save user data")
-        
+
 users = load_users()
 
 # Load allowed users
